@@ -42,6 +42,8 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+    env_file:
+      - ./apps/api-gateway-svc/.env
 
   user-svc:
     build:
@@ -55,7 +57,7 @@ services:
       postgres:
         condition: service_healthy
     env_file:
-      - .env
+      - ./apps/user-svc/.env
 
 volumes:
   postgres_data:

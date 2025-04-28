@@ -1,22 +1,36 @@
 import { NestFactory } from '@nestjs/core';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { UserSvcModule } from './user-svc.module';
 import { RpcValidationFilter } from './filters';
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import {
+  RmqOptions,
+  Transport,
+  MicroserviceOptions,
+} from '@nestjs/microservices';
 
-async function bootstrap() {
-  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
-    UserSvcModule,
-    {
-      transport: Transport.RMQ,
-      options: {
-        urls: ['amqp://user:password@rabbitmq:5672'],
-        queue: 'user_queue',
-        queueOptions: {
-          durable: false,
-        },
+async function bootstrap(): Promise<void> {
+  const configService = new ConfigService();
+
+  const USER = configService.getOrThrow<string>('RABBITMQ_USER');
+  const PASS = configService.getOrThrow<string>('RABBITMQ_PASS');
+  const HOST = configService.getOrThrow<string>('RABBITMQ_HOST');
+  const QUEUE = configService.getOrThrow<string>('RABBITMQ_QUEUE');
+
+  const rmqConfig: RmqOptions = {
+    transport: Transport.RMQ,
+    options: {
+      urls: [`amqp://${USER}:${PASS}@${HOST}`],
+      queue: QUEUE,
+      queueOptions: {
+        durable: false,
       },
     },
+  };
+
+  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
+    UserSvcModule,
+    rmqConfig,
   );
 
   app.useGlobalFilters(new RpcValidationFilter());
