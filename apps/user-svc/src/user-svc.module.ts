@@ -1,10 +1,18 @@
 import { Module } from '@nestjs/common';
-import { UserSvcController } from './user-svc.controller';
-import { UserSvcService } from './user-svc.service';
+import { UserModule } from './user/user.module';
+import { DatabaseModule } from './database/database.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [],
-  controllers: [UserSvcController],
-  providers: [UserSvcService],
+  imports: [
+    UserModule,
+    DatabaseModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
+  ],
+  controllers: [],
+  providers: [],
 })
 export class UserSvcModule {}
