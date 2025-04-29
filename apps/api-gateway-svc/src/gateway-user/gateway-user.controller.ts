@@ -1,36 +1,34 @@
 import {
-  Body,
   Controller,
-  Delete,
-  Get,
-  HttpException,
-  HttpStatus,
+  Body,
   Param,
   Post,
+  Get,
   Put,
+  Delete,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { GatewayUserService } from './gateway-user.service';
-import { lastValueFrom, Observable } from 'rxjs';
 
 @Controller('gateway-user')
 export class GatewayUserController {
-  constructor(private readonly gatewayUserService: GatewayUserService) {}
+  constructor(private readonly service: GatewayUserService) {}
 
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   async createUser(@Body() data: object): Promise<object> {
-    return await this.exec(this.gatewayUserService.create(data));
+    return this.service.create(data);
   }
 
   @Get()
-  async findAllUsers(): Promise<object> {
-    return await this.exec(this.gatewayUserService.findAll());
+  async findAllUsers(): Promise<object[]> {
+    return this.service.findAll();
   }
 
   @Get(':id')
   async findUser(@Param('id') id: string): Promise<object> {
-    const userId = Number(id);
-
-    return await this.exec(this.gatewayUserService.find(userId));
+    return this.service.find(Number(id));
   }
 
   @Put(':id')
@@ -38,32 +36,12 @@ export class GatewayUserController {
     @Param('id') id: string,
     @Body() data: object,
   ): Promise<object> {
-    const userId = Number(id);
-
-    return await this.exec(this.gatewayUserService.update(userId, data));
+    return this.service.update(Number(id), data);
   }
 
   @Delete(':id')
-  async removeUser(@Param('id') id: string): Promise<object> {
-    const userId = Number(id);
-
-    return await this.exec(this.gatewayUserService.remove(userId));
-  }
-
-  private async exec<T>(obs: Observable<T>): Promise<T> {
-    try {
-      return await lastValueFrom(obs);
-    } catch (e: unknown) {
-      if (e instanceof HttpException) {
-        throw e;
-      }
-      if (e instanceof Error) {
-        throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
-      }
-      throw new HttpException(
-        'Unknown error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removeUser(@Param('id') id: string): Promise<void> {
+    return this.service.remove(Number(id));
   }
 }

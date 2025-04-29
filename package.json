@@ -9,6 +9,7 @@
     "build": "nest build",
     "build:gateway": "nest build api-gateway-svc",
     "build:user": "nest build user-svc",
+    "build:notification-scheduler": "nest build notification-scheduler-svc",
     "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -22,6 +23,8 @@
     "test:e2e": "jest --config ./apps/api-gateway-svc/test/jest-e2e.json"
   },
   "dependencies": {
+    "@nestjs/axios": "^4.0.0",
+    "@nestjs/bullmq": "^11.0.2",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
@@ -31,8 +34,11 @@
     "@nestjs/typeorm": "^11.0.0",
     "amqp-connection-manager": "^4.1.14",
     "amqplib": "^0.10.7",
+    "axios": "^1.9.0",
+    "bullmq": "^5.51.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
+    "ioredis": "^5.6.1",
     "pg": "^8.15.6",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",

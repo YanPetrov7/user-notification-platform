@@ -1,16 +1,22 @@
 import { Module } from '@nestjs/common';
 import { GatewayUserService } from './gateway-user.service';
 import { GatewayUserController } from './gateway-user.controller';
-import { ClientProxyFactory, Transport } from '@nestjs/microservices';
+import {
+  ClientProxy,
+  ClientProxyFactory,
+  Transport,
+} from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
+import { GatewayNotificationSchedulerModule } from '../gateway-notification-scheduler/gateway-notification-scheduler.module';
 
 @Module({
   controllers: [GatewayUserController],
+  imports: [GatewayNotificationSchedulerModule],
   providers: [
     GatewayUserService,
     {
       provide: 'USER_SERVICE',
-      useFactory: (configService: ConfigService) => {
+      useFactory: (configService: ConfigService): ClientProxy => {
         const USER = configService.get<string>('RABBITMQ_USER');
         const PASS = configService.get<string>('RABBITMQ_PASS');
         const HOST = configService.get<string>('RABBITMQ_HOST');

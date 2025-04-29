@@ -1,11 +1,8 @@
 services:
   rabbitmq:
-    image: rabbitmq:3-management
+    image: rabbitmq:latest
     container_name: rabbitmq
     hostname: rabbitmq
-    volumes:
-      - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
-      - /var/lib/rabbitmq
     ports:
       - 15672:15672
       - 5671:5671
@@ -13,6 +10,20 @@ services:
       - .env
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping", "-q"]
+      interval: 5s
+      timeout: 2s
+      retries: 5
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    hostname: redis
+    ports:
+      - 6379:6379
+    volumes:
+      - /var/lib/redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 2s
       retries: 5
@@ -31,7 +42,7 @@ services:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
       timeout: 1s
-      retries: 3
+      retries: 3 
 
   api-gateway-svc:
     build:
@@ -42,6 +53,8 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     env_file:
       - ./apps/api-gateway-svc/.env
 
@@ -49,8 +62,6 @@ services:
     build:
       context: .
       dockerfile: ./apps/user-svc/Dockerfile
-    ports:
-      - '3001:3000'
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -58,6 +69,16 @@ services:
         condition: service_healthy
     env_file:
       - ./apps/user-svc/.env
+
+  notification-scheduler-svc:
+    build:
+      context: .
+      dockerfile: ./apps/notification-scheduler-svc/Dockerfile
+    depends_on:
+      redis:
+        condition: service_healthy
+    env_file:
+      - ./apps/notification-scheduler-svc/.env
 
 volumes:
   postgres_data:

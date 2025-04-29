@@ -1,6 +1,5 @@
 # syntax=docker/dockerfile:1
 
-#### BUILDER ####
 FROM node:22-alpine AS builder
 WORKDIR /app
 
@@ -10,7 +9,6 @@ RUN npm install --omit=dev
 COPY . .
 RUN npm run build:user
 
-#### RUNNER ####
 FROM node:22-alpine AS runner
 WORKDIR /app
 
