@@ -1,12 +1,9 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities';
 import { CreateUserDto, UpdateUserDto } from './dto';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class UserService {
@@ -21,9 +18,10 @@ export class UserService {
     });
 
     if (isUserExist) {
-      throw new ConflictException(
-        `User with username ${createUserDto.username} already exists`,
-      );
+      throw new RpcException({
+        statusCode: HttpStatus.CONFLICT,
+        message: `User with username ${createUserDto.username} already exists`,
+      });
     }
 
     const user = this.userRepository.create(createUserDto);
@@ -40,7 +38,10 @@ export class UserService {
     const user = await this.userRepository.findOneBy({ id });
 
     if (!user) {
-      throw new NotFoundException(`User with id ${id} not found`);
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: `User with id ${id} not found`,
+      });
     }
 
     return user;
@@ -58,7 +59,10 @@ export class UserService {
     const result = await this.userRepository.delete(id);
 
     if (result.affected === 0) {
-      throw new NotFoundException(`User with id ${id} not found`);
+      throw new RpcException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: `User with id ${id} not found`,
+      });
     }
   }
 }

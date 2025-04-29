@@ -1,6 +1,5 @@
 import { NestFactory } from '@nestjs/core';
 import { UserSvcModule } from './user-svc.module';
-import { RpcValidationFilter } from './filters';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
@@ -33,7 +32,6 @@ async function bootstrap(): Promise<void> {
     rmqConfig,
   );
 
-  app.useGlobalFilters(new RpcValidationFilter());
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
   await app.listen();

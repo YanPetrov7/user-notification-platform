@@ -17,7 +17,7 @@ export class NotificationProcessor extends WorkerHost {
     const { username } = job.data;
 
     this.logger.debug(
-      `Processing notification for user ${username} with job ID ${job.id}`,
+      `Processing notification for user: ${username} with job ID: ${job.id}`,
     );
 
     await this.notificationService.sendNotification({

@@ -1,5 +1,5 @@
 import { Injectable, Inject, HttpException, HttpStatus } from '@nestjs/common';
-import { ClientProxy, RpcException } from '@nestjs/microservices';
+import { ClientProxy } from '@nestjs/microservices';
 import { lastValueFrom, Observable } from 'rxjs';
 import { GatewayNotificationSchedulerService } from '../gateway-notification-scheduler/gateway-notification-scheduler.service';
 
@@ -44,29 +44,10 @@ export class GatewayUserService {
   private async exec<T>(obs: Observable<T>): Promise<T> {
     try {
       return await lastValueFrom(obs);
-    } catch (e: unknown) {
-      if (e instanceof RpcException) {
-        const payload = e.getError() as {
-          message?: string;
-          statusCode?: number;
-        };
-        throw new HttpException(
-          payload.message || 'Unknown RPC error',
-          payload.statusCode || HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-
-      if (e instanceof HttpException) {
-        throw e;
-      }
-
-      if (e instanceof Error) {
-        throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
-      }
-
+    } catch (e) {
       throw new HttpException(
-        'Unknown error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        e.message || 'Internal server error',
+        e.statusCode || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
