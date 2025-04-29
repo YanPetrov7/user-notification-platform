@@ -1,15 +1,17 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { RpcException } from '@nestjs/microservices';
 import { User } from './entities';
 import { CreateUserDto, UpdateUserDto } from './dto';
-import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class UserService {
+  private readonly logger = new Logger(UserService.name);
+
   constructor(
     @InjectRepository(User)
-    private userRepository: Repository<User>,
+    private readonly userRepository: Repository<User>,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -25,13 +27,15 @@ export class UserService {
     }
 
     const user = this.userRepository.create(createUserDto);
-    return this.userRepository.save(user);
+    const saved = await this.userRepository.save(user);
+
+    this.logger.debug(`Created user with id ${saved.id}`);
+
+    return saved;
   }
 
   async findAll(): Promise<User[]> {
-    const users = await this.userRepository.find();
-
-    return users;
+    return await this.userRepository.find();
   }
 
   async findOne(id: number): Promise<User> {
@@ -52,7 +56,11 @@ export class UserService {
 
     await this.userRepository.update(id, updateUserDto);
 
-    return { ...user, ...updateUserDto };
+    const updated = { ...user, ...updateUserDto };
+
+    this.logger.debug(`Updated user with id ${id}`);
+
+    return updated;
   }
 
   async remove(id: number): Promise<void> {
@@ -64,5 +72,7 @@ export class UserService {
         message: `User with id ${id} not found`,
       });
     }
+
+    this.logger.debug(`Deleted user with id ${id}`);
   }
 }

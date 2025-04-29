@@ -1,12 +1,21 @@
-import { Injectable, Inject, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  HttpException,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { lastValueFrom, Observable } from 'rxjs';
 import { GatewayNotificationSchedulerService } from '../gateway-notification-scheduler/gateway-notification-scheduler.service';
+import { MICROSERVICES_CLIENTS } from '../app.constants';
 
 @Injectable()
 export class GatewayUserService {
+  private readonly logger = new Logger(GatewayUserService.name);
+
   constructor(
-    @Inject('USER_SERVICE')
+    @Inject(MICROSERVICES_CLIENTS.USER_SERVICE)
     private readonly userClient: ClientProxy,
     private readonly notificationScheduler: GatewayNotificationSchedulerService,
   ) {}
@@ -16,9 +25,7 @@ export class GatewayUserService {
       this.userClient.send({ cmd: 'create-user' }, data),
     );
 
-    if (!('error' in result)) {
-      this.notificationScheduler.handleUserCreatedEvent(result);
-    }
+    this.notificationScheduler.handleUserCreatedEvent(result);
 
     return result;
   }
@@ -45,6 +52,10 @@ export class GatewayUserService {
     try {
       return await lastValueFrom(obs);
     } catch (e) {
+      this.logger.error(
+        `Failed to execute request: ${e.message || 'Internal server error'}`,
+      );
+
       throw new HttpException(
         e.message || 'Internal server error',
         e.statusCode || HttpStatus.INTERNAL_SERVER_ERROR,

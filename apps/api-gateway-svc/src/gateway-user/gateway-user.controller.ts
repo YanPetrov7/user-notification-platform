@@ -6,8 +6,6 @@ import {
   Get,
   Put,
   Delete,
-  HttpCode,
-  HttpStatus,
 } from '@nestjs/common';
 import { GatewayUserService } from './gateway-user.service';
 
@@ -16,7 +14,6 @@ export class GatewayUserController {
   constructor(private readonly service: GatewayUserService) {}
 
   @Post()
-  @HttpCode(HttpStatus.CREATED)
   async createUser(@Body() data: object): Promise<object> {
     return this.service.create(data);
   }
@@ -40,7 +37,6 @@ export class GatewayUserController {
   }
 
   @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
   async removeUser(@Param('id') id: string): Promise<void> {
     return this.service.remove(Number(id));
   }

@@ -5,12 +5,13 @@ import { SchedulerService } from './scheduler.service';
 import { BullModule } from '@nestjs/bullmq';
 import { NotificationModule } from '../notification/notification.module';
 import { NotificationProcessor } from './processors';
+import { QueueName } from './enums';
 
 @Module({
   imports: [
     NotificationModule,
     BullModule.registerQueueAsync({
-      name: 'notifications',
+      name: QueueName.NOTIFICATIONS,
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({

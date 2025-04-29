@@ -4,8 +4,9 @@ import { Logger } from '@nestjs/common';
 import { NotificationService } from '../../notification/notification.service';
 import { PUSH_NOTIFICATION_TEMPLATES } from '../scheduler.constants';
 import { UserCreatedPayload } from '../interfaces';
+import { EventName, QueueName } from '../enums';
 
-@Processor('notifications')
+@Processor(QueueName.NOTIFICATIONS)
 export class NotificationProcessor extends WorkerHost {
   private readonly logger = new Logger(NotificationProcessor.name);
 
@@ -14,19 +15,26 @@ export class NotificationProcessor extends WorkerHost {
   }
 
   async process(job: Job<UserCreatedPayload>): Promise<void> {
-    const { username } = job.data;
+    switch (job.name as EventName) {
+      case EventName.USER_CREATED:
+        await this.handleUserCreated(job.data);
+        break;
+      default:
+        this.logger.warn(`Unknown job type ${job.name}`);
+    }
+  }
 
-    this.logger.debug(
-      `Processing notification for user: ${username} with job ID: ${job.id}`,
-    );
+  private async handleUserCreated(data: UserCreatedPayload): Promise<void> {
+    const { username } = data;
+
+    this.logger.debug(`Sending notification for ${username}`);
+
+    const template = PUSH_NOTIFICATION_TEMPLATES[EventName.USER_CREATED];
 
     await this.notificationService.sendNotification({
       userId: username,
-      title: PUSH_NOTIFICATION_TEMPLATES.USER_CREATED.title,
-      message: PUSH_NOTIFICATION_TEMPLATES.USER_CREATED.message.replace(
-        '{{name}}',
-        username,
-      ),
+      title: template.title,
+      message: template.message.replace('{{name}}', username),
     });
   }
 }

@@ -8,6 +8,7 @@ import {
 } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 import { GatewayNotificationSchedulerModule } from '../gateway-notification-scheduler/gateway-notification-scheduler.module';
+import { MICROSERVICES_CLIENTS } from '../app.constants';
 
 @Module({
   controllers: [GatewayUserController],
@@ -15,7 +16,7 @@ import { GatewayNotificationSchedulerModule } from '../gateway-notification-sche
   providers: [
     GatewayUserService,
     {
-      provide: 'USER_SERVICE',
+      provide: MICROSERVICES_CLIENTS.USER_SERVICE,
       useFactory: (configService: ConfigService): ClientProxy => {
         const USER = configService.get<string>('RABBITMQ_USER');
         const PASS = configService.get<string>('RABBITMQ_PASS');
