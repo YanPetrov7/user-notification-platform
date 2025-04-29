@@ -1,7 +1,7 @@
 import {
   Injectable,
-  Logger,
   InternalServerErrorException,
+  Logger,
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
@@ -29,10 +29,12 @@ export class NotificationService {
     } catch (e) {
       this.logger.error(
         `Failed to send notification for user ${dto.userId}:`,
-        e,
+        e.message || 'Internal server error',
       );
 
-      throw new InternalServerErrorException('Notification service failure');
+      throw new InternalServerErrorException(
+        `Failed to send notification: ${e.message || 'Internal server error'}`,
+      );
     }
   }
 }
